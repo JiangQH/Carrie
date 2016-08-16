@@ -6,20 +6,25 @@ namespace regression {
 class BaseRegressor {
 public:
     virtual BaseRegressor(const Eigen::MatrixXd& X,
-                  const Eigen::VectorXd& y)=0;
-    virtual BaseRegressor()=0;
-    virtual ~BaseRegressor()=0;
+                  const Eigen::VectorXd& y) {};
+    virtual BaseRegressor() {};
+    virtual ~BaseRegressor(){};
     virtual void train(const Eigen::MatrixXd& X,
                const Eigen::VectorXd& y)=0;
 
-    virtual Eigen::VectorXd predict(const Eigen::MatrixXd& test_X) const=0;
+    virtual const Eigen::VectorXd& predict(const Eigen::MatrixXd& test_X) const=0;
 
-    virtual void set_params(const Eigen::VectorXd& params)=0;
+    virtual void set_params(const Eigen::VectorXd& params) {
+        params_ = params;
+    }
 
-    virtual const Eigen::VectorXd& get_params() const=0;
+    virtual const Eigen::VectorXd& get_params() const {
+        return params_;
+    }
 
-private:
+protected:
     Eigen::VectorXd params_;
+    bool instanced_; 
 
 };//end of class base regressor
 
