@@ -8,6 +8,7 @@ enum logtype {
     WARN,
     ERROR
 };
+
 class LOG {
 public:
     LOG() {}
