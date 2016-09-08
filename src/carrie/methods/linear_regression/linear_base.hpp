@@ -12,7 +12,7 @@ class LinearBase {
 public:
     virtual LinearBase() { instanced_ = false; }
     virtual ~LinearBase() {}
-    virtual void train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y, bool intercept) = 0;
+    virtual void train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y, bool intercept=true) = 0;
     virtual Eigen::MatrixXd predict(const Eigen::MatrixXd& X) = 0;
 
     virtual Eigen::VectorXd get_params() const {
@@ -34,6 +34,7 @@ public:
 protected:
     Eigen::VectorXd params_;
     bool instanced_;
+    bool intercept_;
 };// end of the LinearBase
 
 }//namespace regression

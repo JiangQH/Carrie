@@ -10,7 +10,7 @@ class LinearRegression : public LinearBase {
 public:
     LinearRegression() {}
     ~LinearRegression() {}
-    void train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
+    void train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y, bool intercept = true);
     Eigen::MatrixXd predict(const Eigen::MatrixXd& X);
 
 };//class linear regression
