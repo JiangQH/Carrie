@@ -8,8 +8,8 @@
 using namespace carrie;
 using namespace carrie::regression;
 
-void LinearRegression::train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y) {
-
+void LinearRegression::train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y, bool intercept) {
+    
 }
 
 

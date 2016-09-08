@@ -12,7 +12,7 @@ class LinearBase {
 public:
     virtual LinearBase() { instanced_ = false; }
     virtual ~LinearBase() {}
-    virtual void train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y) = 0;
+    virtual void train(const Eigen::MatrixXd& X, const Eigen::VectorXd& y, bool intercept) = 0;
     virtual Eigen::MatrixXd predict(const Eigen::MatrixXd& X) = 0;
 
     virtual Eigen::VectorXd get_params() const {
