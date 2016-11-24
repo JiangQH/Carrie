@@ -6,7 +6,6 @@ This python file implements the smo algorithm to support svm algorithms
 import numpy as np
 import numbers
 
-
 class SVM:
     """
     This svm classifier class
@@ -200,25 +199,38 @@ class SVM:
             alpha2_new += y1 * y2 * (alpha1_new - self._C)
             alpha1_new = self._C
 
-
-        # update alpha
-        self._alphas[i1] = alpha1_new
-        self._alphas[i2] = alpha2_new
-
-        # update the b
+        # update the bnew
         b1 = -E1 - y1 * k11 * (alpha1_new - alpha1_old) - y2 * k12 * (alpha2_new - alpha2_old) + self._b
         b2 = -E2 - y1 * k12 * (alpha1_new - alpha1_old) - y2 * k22 * (alpha2_new - alpha2_old) + self._b
+        bnew = 0
         if alpha1_new > 0 and alpha1_old < self._C:
-            self._b = b1
+            bnew = b1
         elif alpha2_new > 0 and alpha2_new < self._C:
-            self._b = b2
+            bnew = b2
         else:
-            self._b = (b1 + b2) / 2
+            bnew = (b1 + b2) / 2
 
-        # update the error cache, for those unbounded points
+        # update the error cache, for those unbounded alphas
         unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()
+        delta1 = y1 * (alpha1_new - alpha2_old)
+        delta2 = y2 * (alpha2_new - alpha2_old)
+        deltab = bnew - self._b
+        for index in unbounded_index:
+            self._eCache[index]  = self._eCache[index] + delta1 * self.kernel(self._X[i1, :], self._X[index, :]) \
+                                    + delta2 * self.kernel(self._X[i2, :], self._X[index, :]) + deltab
+        # note that below two line is necessary, because for those newly coming alpha, the above rule is not
+        # work for them. so we do hard assign
+        self._eCache[i1] = 0
+        self._eCache[i2] = 0
 
-        #--- left todo ---
+        # update the alpha and b
+        self._alphas[i1] = alpha1_new
+        self._alphas[i2] = alpha2_new
+        self._b = bnew
+
+        return 1
+
+        
 
 
 
@@ -241,6 +253,7 @@ class SVM:
         [m, n] = X.size()
         assert m == len(y), "The training data and label size not equal! ({} vs {})".format(m, len(y))
         self._m = m
+        self._n = n
         # the error cache to store E. Note here, we only store E for
         # those alpha that are unbounded (0< alpha < C).
         self._eCache = np.zeros((m, 1))
@@ -272,6 +285,32 @@ class SVM:
             elif num_changed == 0:
                 examine_all = True
             print 'Iteration {}'.format(iters)
+
+
+    def predict(self, TestX):
+        """
+        using the trained methods to do prediction job
+        :param TestX: the testX to be tested, which is (K, n)
+        :return: the predicted label for each data point (K, 1)
+        """
+        if getattr(self, '_m', None) is None:
+            raise UntrainedError("classifier not trained. train it first!")
+        assert self._n == TestX.shape[1], "Test sample should have the same feature length with training"
+        K = TestX.shape[0]
+        prediction = np.zeros((K, 1))
+        for i in range(K):
+            pre = self.learned_func(TestX[i, :])
+            if pre >= 0:
+                prediction[i,0] = 1
+            else:
+                prediction[i, 0] = -1
+        return prediction
+
+class UntrainedError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
 
 
 
