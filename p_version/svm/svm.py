@@ -22,15 +22,15 @@ class SVM:
         self._C = C
         self._tol = toler
         self._maxIter = maxIter
-        self._eps = 0.001
+        self._eps = 0.00001
         # our kernel. now only support 'linear' and 'rbf' kernel
-        if kernel != 'rbf' or kernel != 'linear':
+        if kernel not in ('rbf', 'linear'):
             raise NameError('Unsupported kernel. be linear or rbf')
         self._kernel = kernel
         # the gamma is only used for rbf kernel. if it is auto. then use gamma = 1 / fearture_size
-        if isinstance(gamma, numbers.Number):
+        if isinstance(gamma, numbers.Number) or (gamma == 'auto'):
             self._gamma = gamma
-        elif gamma != 'auto':
+        else:
             raise NameError("Unsupported gamma. be float number or 'auto' type")
 
 
@@ -44,12 +44,12 @@ class SVM:
         """
         # the linear kernel
         if self._kernel == 'linear':
-            return x1.T * x2
-
+            result = x1 * (x2.T)
+            return result
         # the rbf gaussian kernel. default with
         elif self._kernel == 'rbf':
             delta = x1 - x2
-            k = delta.T * delta
+            k = delta * delta.T
             return np.exp(k / (-1 * 2 * self._gamma))
 
 
@@ -73,12 +73,14 @@ class SVM:
         """
         # if alpha is unbounded. then it's error is cached. just get it out
         # else we should compute it
+        return self.learned_func(self._X[i, :]) - self._y[i]
+        '''
         alpha = self._alphas[i]
         if (alpha > 0) and (alpha < self._C):
             return self._eCache[i]
         else:
             return self.learned_func(self._X[i, :]) - self._y[i]
-
+        '''
 
     def examine(self, i):
         """
@@ -98,7 +100,7 @@ class SVM:
 
             # 1st choose the max step we can get in the unbounded points
             #--------------------- 1st get the max of step -------------------------------
-            unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()
+            unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()[0]
             i2 = -1
             maxdeltaE = 0
             for index in unbounded_index:
@@ -123,6 +125,7 @@ class SVM:
             #------------------------both above not work, so we just loop all the training points---------
             # note we have go through the unbounded examples, so just go through the bounded ones
             bound_index = [index for index in np.arange(self._m) if index not in unbounded_index]
+            np.random.shuffle(bound_index)
             for index in bound_index:
                 if self.takestep(i, index):
                     return 1
@@ -175,23 +178,30 @@ class SVM:
             if alpha2_new < L:
                 alpha2_new = L
         else:
-            c1 = eta / 2
-            c2 = y2 * (E1 - E2) - eta * alpha2_old
-            Lobj = c1 * L * L + c2 * L
-            Hobj = c1 * H * H + c2 * H
-            if Lobj > Hobj + self._eps:
+            print 'eta less than 0'
+            return 0
+            '''
+            f1 = y1 * (E1 + self._b) - alpha1_old * k11 - y1 * y2 * alpha2_old * k12
+            f2 = y2 * (E2 + self._b) - alpha2_old * k22 - y1 * y2 * alpha1_old * k12
+            L1 = alpha1_old + y1 * y2 * (alpha2_old - L)
+            H1 = alpha1_old + y1 * y2 * (alpha2_old - H)
+            Lobj = L1 * f1 + L * f2 + 1/2 * L1 * L1 * k11 + 1/2 * L * L * k22 + y1 * y2 * L * L1 * k12
+            Hobj = H1 * f1 + H * f2 + 1/2 * H1 * H1 * k11 + 1/2 * H * H * k22 + y1 * y2 * H * H1 * k12
+            if Lobj < Hobj - self._eps:
                 alpha2_new = L
-            elif Lobj < Hobj - self._eps:
+            elif Hobj < Lobj - self._eps:
                 alpha2_new = H
             else:
                 alpha2_new = alpha2_old
-
+            '''
         # step too small
         if np.abs(alpha2_new - alpha2_old) < self._eps * (alpha2_new + alpha2_old + self._eps):
             return 0
 
         # update alpha1_old
         alpha1_new = alpha1_old + y1 * y2 * (alpha2_old - alpha2_new)
+
+
         if (alpha1_new < 0):
             alpha2_new += y1 * y2 * alpha1_new
             alpha1_new = 0
@@ -211,7 +221,7 @@ class SVM:
             bnew = (b1 + b2) / 2
 
         # update the error cache, for those unbounded alphas
-        unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()
+        unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()[0]
         delta1 = y1 * (alpha1_new - alpha2_old)
         delta2 = y2 * (alpha2_new - alpha2_old)
         deltab = bnew - self._b
@@ -248,9 +258,10 @@ class SVM:
         :return:
         """
         # set necessary data.
-        self._X = X
-        self._y = y
-        [m, n] = X.size()
+
+        self._X = np.mat(X)
+        self._y = np.float32(y)
+        [m, n] = self._X.shape
         assert m == len(y), "The training data and label size not equal! ({} vs {})".format(m, len(y))
         self._m = m
         self._n = n
@@ -260,7 +271,7 @@ class SVM:
         # the params of our model. alpha and b, which will be initialized to zero
         self._alphas = np.zeros((m, 1), dtype=np.float32)
         self._b = 0.0
-        if self._gamma == 'auto':
+        if self._gamma is 'auto':
             self._gamma = 1.0 / n
 
 
@@ -276,7 +287,7 @@ class SVM:
                     num_changed += self.examine(i)
             else:
                 # loop only those unbounded
-                unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()
+                unbounded_index = ((self._alphas > 0) & (self._alphas < self._C)).nonzero()[0]
                 for i in unbounded_index:
                     num_changed += self.examine(i)
             iters += 1
@@ -284,7 +295,6 @@ class SVM:
                 examine_all = False
             elif num_changed == 0:
                 examine_all = True
-            print 'Iteration {}'.format(iters)
 
 
     def predict(self, TestX):
@@ -305,6 +315,12 @@ class SVM:
             else:
                 prediction[i, 0] = -1
         return prediction
+
+    def getb(self):
+        return self._b
+
+    def getalphas(self):
+        return self._alphas
 
 class UntrainedError(Exception):
     def __init__(self, msg):

@@ -4,6 +4,8 @@
 *.o
 *.obj
 *idea
+*data
+*.pyc
 
 # Precompiled Headers
 *.gch
