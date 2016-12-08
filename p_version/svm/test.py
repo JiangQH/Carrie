@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score
 import time
 # test simple toll, passed
-'''
+
 dh = tools.DataHandler()
 dataArr, labelArr = dh.loadDataSet('../data/testSet.txt')
 classifier = SVM(C=1.0)
@@ -22,7 +22,7 @@ for i in range(100):
     if alpha[i] > 0.0 and alpha[i] < 0.6:
         print dataArr[i], labelArr[i]
 print w
-'''
+
 
 # The test the digit_recognizer
 dh = tools.DataHandler()
@@ -48,7 +48,7 @@ train_data, val_data, train_y, val_y = train_test_split(handled_data, handled_la
 estimator = SVM(C=1.0, gamma=10)
 start = time.time()
 print 'begin training'
-estimator.fit(train_data, train_y)
+estimator.fit(train_data[0:2000], train_y[0:2000])
 print 'trianing done {} seconds'.format(time.time() - start)
 print 'do prediction'
 prediction = estimator.predict(val_data)

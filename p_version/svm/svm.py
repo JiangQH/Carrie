@@ -295,6 +295,7 @@ class SVM:
                 examine_all = False
             elif num_changed == 0:
                 examine_all = True
+            print 'iter {}'.format(iters)
 
 
     def predict(self, TestX):
