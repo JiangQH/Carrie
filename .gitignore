@@ -6,6 +6,8 @@
 *idea
 *data
 *.pyc
+*.txt
+*.pkl
 
 # Precompiled Headers
 *.gch
