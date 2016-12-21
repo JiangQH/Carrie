@@ -16,9 +16,7 @@ class MiniBatchGraDescent(object):
         :return:
         """
         [m_samples, n_features] = np.shape(X)
-        X_spand = np.ones((m_samples, n_features+1))
-        X_spand[:, 1:] = X
-        theta = np.random.randn(1, n_features+1)
+        theta = np.random.randn(n_features, 1)
         start = 0
         count = 0
         for iter in range(max_iter):
@@ -27,10 +25,10 @@ class MiniBatchGraDescent(object):
                 count += 1
                 print 'complete whole {}'.format(count)
                 end = end - m_samples - 1
-                params = [np.concatenate((X_spand[start:], X_spand[:end])),
+                params = [np.concatenate((X[start:], X[:end])),
                           np.concatenate((y[start:], y[:end])), theta]
             else:
-                params = [X_spand[start:end], y[start:end], theta]
+                params = [X[start:end], y[start:end], theta]
             start = end
-            theta += lr * gfunction(*params)
+            theta -= lr * gfunction(*params)
 

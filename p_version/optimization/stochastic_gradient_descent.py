@@ -19,12 +19,10 @@ class StoGraDescent(object):
         :return:
         """
         [m_samples, n_features] = np.shape(X)
-        X_spand = np.ones((m_samples, n_features+1))
-        theta = np.random.randn(1, n_features+1)
-        X_spand[:,1:] = X
+        theta = np.random.randn(n_features, 1)
         for eps in range(max_eps):
             print "eps {}".format(eps)
             for i in range(m_samples):
-                params = [X_spand[i, :], y[i], theta]
-                theta += lr * gfunction(*params)
+                params = [X[i, :], y[i], theta]
+                theta -= lr * gfunction(*params)
         return theta
