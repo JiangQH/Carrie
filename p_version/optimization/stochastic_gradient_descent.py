@@ -24,5 +24,5 @@ class StoGraDescent(object):
             print "eps {}".format(eps)
             for i in range(m_samples):
                 params = [X[i, :], y[i], theta]
-                theta -= lr * gfunction(*params)
+                theta -= lr * gfunction(params)
         return theta

@@ -4,7 +4,7 @@ class LogisticRegression(object):
     def __init__(self):
         __slots__ = 'theta'
 
-    def fit(self, X, y):
+    def fit(self, X, y, lr=0.01, max_eps=200):
         """
         fit the logistic regression
         :param X: input X which is (m_samples, n_features)
@@ -18,7 +18,8 @@ class LogisticRegression(object):
         X_spand[:, 1:] = X
         # train the model using gradient descent
         # here use the stochastic_gradient_descent
-        self.theta = SGD().fit(self.lossGrad, X, y, lr=0.01, max_eps=100)
+        self.theta = SGD().fit(self.lossGrad, X_spand, y, lr=lr, max_eps=max_eps)
+
 
     def predict(self, test_X):
         """
@@ -51,11 +52,14 @@ class LogisticRegression(object):
         :return:
         """
         h_x = self.sigmoid(X * self.theta)
-        return np.transpose(y) * np.log(h_x) + np.transpose(1 - y) * np.log(1 - h_x)
+        return -(np.transpose(y) * np.log(h_x) + np.transpose(1 - y) * np.log(1 - h_x))
 
     def lossGrad(self, params):
-        X = params[0]
+        X = np.mat(params[0])
         y = params[1]
         theta = params[2]
         h_x = self.sigmoid(X * theta)
         return np.transpose(X) * (h_x - y)
+
+    def getWeights(self):
+        return self.theta
