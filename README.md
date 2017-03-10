@@ -1,2 +1,2 @@
 # Carrie
-C++ implemented Machine Learning Library
+ML&DL impl code
