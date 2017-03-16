@@ -62,7 +62,9 @@ class Convolution(BaseLayer):
             print 'init convolution layer weights with std'.format(self.w_std)
             self.weights *= self.w_std
 
-
+        # do the w_row job, convert the weight to row matrixs
+        # w_row (k, input_channel * kernel_height * kernel_width)
+        self.weights.reshape((self.kernel_num, input_channel * self.kernel_height * self.kernel_width))
 
         # do the im2col job
 
@@ -71,3 +73,33 @@ class Convolution(BaseLayer):
 
     def backward(self, Y):
         pass
+
+
+    def __im2col(self, X):
+        """
+        convert the X to matrix
+        im2col function.
+        1\ im2col: (input_channel * kernel_height * kernel_width, out_h * out_w)
+        :param X: (input_channel, input_height, input_width)
+        :return:
+        """
+        [input_channel, input_height, input_width] = X.shape
+        out_height = (input_height + 2 * self.pad - self.kernel_height) / self.stride + 1
+        out_width = (input_width + 2 * self.pad - self.kernel_width) / self.stride + 1
+        im2col = np.zeros((input_channel * self.kernel_height * self.kernel_width,
+                           out_height * out_width))
+        # now do the scan-folding job
+        h_start = -self.pad
+        for h in range(0, out_height):
+            w_start = -self.pad
+            for w in range(0, out_width):
+                # scanfolding the (h_start:h_start+kernel_height, w_start:w_start+kernel_width)
+                real_h = h_start
+                if h_start < 0:
+                    real_h = 0
+                real_w = w_start
+                if w_start < 0:
+                    real_w = 0
+                # the padding zero
+                
+
