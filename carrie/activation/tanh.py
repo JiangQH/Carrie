@@ -1,4 +1,4 @@
-from carrie.baselayer import BaseLayer
+from carrie.layers.baselayer import BaseLayer
 from carrie.math import math
 class Tanh(BaseLayer):
     """

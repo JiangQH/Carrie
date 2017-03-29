@@ -13,3 +13,10 @@ class BaseLayer(object):
         :return: back_diff
         """
         pass
+
+    def initJob(self, X):
+        """
+        init the weights and bias, call only once
+        :param X:
+        :return:
+        """

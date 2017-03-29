@@ -1,5 +1,8 @@
-from carrie.baselayer import BaseLayer
 import numpy as np
+
+from carrie.layers.baselayer import BaseLayer
+
+
 class ReLU(BaseLayer):
     """
     the relu layer. y = max(0, x)
