@@ -1,7 +1,6 @@
 import numpy as np
-
 from carrie.layers.baselayer import BaseLayer
-
+from carrie.utils.im2col import im2col, col2im
 
 class Convolution(BaseLayer):
     """
@@ -99,15 +98,9 @@ class Convolution(BaseLayer):
         # now do the forward job
         out_height = (input_height + 2 * self.pad - self.kernel_height) / self.stride + 1
         out_width = (input_width + 2 * self.pad - self.kernel_width) / self.stride + 1
-        y = np.zeros((input_dim, self.kernel_num, out_height, out_width))
-        for it in range(input_dim):
-            data = X[it, ...]
-            im2col = self.__im2col(data)
-            y[it, ...] = (self._weights * im2col + self._bias).reshape((self.kernel_num, out_height,
-                                                                        out_width))
-        return y
-
-
+        # get the im2col_data
+        imcol = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
+        out = self._weights * imcol
 
 
 
@@ -116,47 +109,12 @@ class Convolution(BaseLayer):
         do the backward job, it compute two things.
         1\ gradient with respect to x
         2\ gradient with respect to weight and bias
+        need the col to im trick
         :param Y:
         :return:
         """
-        pass
+        # first reshape the output
 
 
-    def __im2col(self, X):
-        """
-        convert the X to matrix
-        im2col function.
-        1\ im2col: (input_channel * kernel_height * kernel_width, out_h * out_w)
-        :param X: (input_channel, input_height, input_width)
-        :return:
-        """
-        [input_channel, input_height, input_width] = X.shape
-        out_height = (input_height + 2 * self.pad - self.kernel_height) / self.stride + 1
-        out_width = (input_width + 2 * self.pad - self.kernel_width) / self.stride + 1
-        im2col = np.zeros((input_channel * self.kernel_height * self.kernel_width,
-                           out_height * out_width))
-        # now do the scan-folding job
-        h_start = -self.pad
-        for h in range(out_height):
-            w_start = -self.pad
-            for w in range(out_width):
-                local_data = np.zeros((input_channel, self.kernel_height, self.kernel_width))
-                h_starter = h_start if h_start > 0 else 0
-                w_starter = w_start if w_start > 0 else 0
-                h_ender = h_start + self.kernel_height \
-                    if (h_start + self.kernel_height) < input_height else input_height - 1
-                w_ender = w_start + self.kernel_width \
-                    if (w_start + self.kernel_width) < input_width else input_width - 1
-                local_data[:, h_starter-h_start:h_ender-h_start, w_starter-w_start:w_ender-w_start] \
-                    = X[:, h_start:h_ender, w_starter:w_ender]
-                # reshape it to a column and assigned to the im2col data
-                im2col[:, w + h * out_height] = local_data.flatten().transpose()
-
-                # update w_start
-                w_start += self.pad
-            # update h_start
-            h_start += self.pad
-        # return the im2col data
-        return im2col
 
 
