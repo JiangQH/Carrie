@@ -59,6 +59,8 @@ class Convolution(BaseLayer):
         # the init job for weight and bias
         self._weights = np.random.randn((self.kernel_num, input_channel * self.kernel_height * self.kernel_width))
         self._bias = np.ones((self.kernel_num, 1)) * self.b_val
+        self._dw = np.zeros_like(self._weights, dtype=np.float32)
+        self._db = np.zeros_like(self._bias, dtype=np.float32)
         if self.w_std is None:
             print 'init convolution layer weights with default...'
             ns = self.kernel_num * input_channel * self.kernel_height * self.kernel_width
@@ -99,8 +101,14 @@ class Convolution(BaseLayer):
         out_height = (input_height + 2 * self.pad - self.kernel_height) / self.stride + 1
         out_width = (input_width + 2 * self.pad - self.kernel_width) / self.stride + 1
         # get the im2col_data
-        imcol = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
-        out = self._weights * imcol
+        col = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
+        out = self._weights * col + self._bias
+        out = out.reshape(self.kernel_num, out_height, out_width, input_dim)
+        out = out.transpose(3, 0, 1, 2)
+        # cache the col
+        self.col = col
+        self.x_shape = X.shape
+        return out
 
 
 
@@ -113,7 +121,17 @@ class Convolution(BaseLayer):
         :param Y:
         :return:
         """
-        # first reshape the output
+        # with respect to bias
+        self._db = np.sum(Y, axis=(0, 2, 3)).reshape(self.kernel_num, -1)
+        # with respect to w
+        dout = Y.transpose(1, 2, 3, 0).reshape(self.kernel_num, -1)
+        self._dw = dout * self.col.T
+        # with respect to x
+        dx_col = self._weights.T * dout
+        dx = col2im(dx_col, self.x_shape, self.kernel_height, self.kernel_width, self.pad, self.stride)
+        return dx
+
+
 
 
 
