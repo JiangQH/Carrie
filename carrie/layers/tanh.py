@@ -5,10 +5,10 @@ class Tanh(BaseLayer):
     the tanh layer
     """
     __slots__ = 'input_'
-    def __init__(self):
-        pass
+    def __init__(self, name):
+        super(Tanh, self).__init__(name)
 
-    def forward(self, X):
+    def forward(self, X, y):
         """
         compute 2* sigmoid(2x) - 1
         :param X:
@@ -18,10 +18,10 @@ class Tanh(BaseLayer):
         return 2 * math.sigmoid(2 * X) - 1
 
 
-    def backward(self, Y):
+    def backward(self, y, X):
         """
         compute backward. 4*sigmoid(2x)*(1-sigmoid(2x))
         :param Y:
         :return:
         """
-        return Y * 4 * math.sigmoid(2 * self.input_) * (1 - math.sigmoid(2 * self.input_))
+        return y * 4 * math.sigmoid(2 * self.input_) * (1 - math.sigmoid(2 * self.input_))
