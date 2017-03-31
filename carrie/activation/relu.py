@@ -8,10 +8,11 @@ class ReLU(BaseLayer):
     the relu layer. y = max(0, x)
     """
     __slots__ = 'mask_'
-    def __init__(self):
-        pass
+    def __init__(self, name):
+        super(ReLU, self).__init__(name)
 
-    def forward(self, X):
+
+    def forward(self, X, y):
         """
         compute the y = max(x, 0)
         we need to save the mask of x, which is larger than zero
@@ -22,13 +23,13 @@ class ReLU(BaseLayer):
         return np.multiply(X, self.mask_)
 
 
-    def backward(self, Y):
+    def backward(self, y, X):
         """
         compute the back diff
         :param Y: backward diff y
         :return:
         """
-        return np.multiply(Y, self.mask_)
+        return np.multiply(y, self.mask_)
 
 
 

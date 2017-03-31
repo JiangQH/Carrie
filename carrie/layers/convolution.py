@@ -1,138 +1,53 @@
+from base_convolution import BaseConvolution
 import numpy as np
-from carrie.layers.baselayer import BaseLayer
-from carrie.utils.im2col import im2col, col2im
-
-class Convolution(BaseLayer):
-    """
-    this is the convolution layer
-    """
+from carrie.utils.im2col import im2col
+class Convolution(BaseConvolution):
     def __init__(self, name, kernel_width = 3, kernel_height = 3, kernel_num = 64,
                  pad = 1, stride = 1, w_std=None, b_val=0.1):
         """
-        convolution layer params
-        :param name: name of this layer
-        :param kernel_width: the kernel width
-        :param kernel_height: the kernel height
-        :param kernel_num: kernel nums
-        :param pad: padding to the input
-        :param stride: the stride of kernels
-        :param w_std: the std to init weight
-        :param b_val: the init val of bias
+        just call the parent
+        :param name:
+        :param kernel_width:
+        :param kernel_height:
+        :param kernel_num:
+        :param pad:
+        :param stride:
+        :param w_std:
+        :param b_val:
         """
-        assert kernel_width > 0 and kernel_height > 0
-        assert kernel_num > 0 and pad > 1 and stride > 1
-        self.name = name
-        self.kernel_width = kernel_width
-        self.kernel_height = kernel_height
-        self.kernel_num = kernel_num
-        self.pad = pad
-        self.stride = stride
-        self.w_std = w_std
-        self.b_val = b_val
-        self.has_init = False
+        super(Convolution, self).__init__(name, kernel_width, kernel_height, kernel_num,
+                 pad, stride, w_std, b_val)
 
 
     def initJob(self, X):
         """
-        init the weight and bias, note this will be called only once
-        during the whole life of program
+        call the parent pass
         :param X:
         :return:
         """
-        if self.has_init:
-            return
-        # safely check
-        assert len(X.shape) == 4, 'input shape not agree'
-        input_channel = X.shape[1]
-        input_height = X.shape[2]
-        input_width = X.shape[3]
-
-        # input agree
-        assert (input_width + 2 * self.pad - self.kernel_width) % self.stride == 0, 'input and the pad, ' \
-                                                                                    'stride not agree'
-        assert (input_height + 2 * self.pad - self.kernel_height) % self.stride == 0, 'input and the pad, ' \
-                                                                                      'stride not agree'
-
-        # save the channel, so we can do safety check later for the weight
-        self._input_channel = input_channel
-
-        # the init job for weight and bias
-        self._weights = np.random.randn((self.kernel_num, input_channel * self.kernel_height * self.kernel_width))
-        self._bias = np.ones((self.kernel_num, 1)) * self.b_val
-        self._dw = np.zeros_like(self._weights, dtype=np.float32)
-        self._db = np.zeros_like(self._bias, dtype=np.float32)
-        if self.w_std is None:
-            print 'init convolution layer weights with default...'
-            ns = self.kernel_num * input_channel * self.kernel_height * self.kernel_width
-            self._weights *= np.sqrt(2.0 / ns)
-        else:
-            print 'init convolution layer weights with std'.format(self.w_std)
-            self._weights *= self.w_std
-        self.has_init = True
+        super(Convolution, self).initJob(X)
 
 
-    def forward(self, X):
+    def forward(self, X, y):
         """
-        compute the output, using the kernel
-        actually we do:
-        compute im2col: stretch the input to a matrix, multiply it with weights, and reshape back to y
-        :param X: the input ternsors, which should be (n, c, h, w)
-        :return: the output convolutioned value, which should be (n, kernel_num, new_h, new_w)
-        and new_h = (h + 2*padding - kernel_h) / stride + 1, same with width
-        weight should be (k, input_channels, kernel_hegith, kernel_width)
+        forward pass, call the base layer
+        :param X:
+        :return:
         """
-        # do the forward job, first is the safety check
-        assert len(X.shape) == 4, 'input dim not agree'
-        input_dim = X.shape[0]
-        input_channel = X.shape[1]
-        input_height = X.shape[2]
-        input_width = X.shape[3]
-        # input agree
-        assert (input_width + 2 * self.pad - self.kernel_width) % self.stride == 0, 'input and the pad, ' \
-                                                                                    'stride not agree'
-        assert (input_height + 2 * self.pad - self.kernel_height) % self.stride == 0, 'input and the pad, ' \
-                                                                                      'stride not agree'
-        # channel must stay stable, not change
-        assert input_channel == self._input_channel, 'input channel and weights not equal, {} vs {}'.format(
-            input_channel, self._input_channel
-        )
-
-        # now do the forward job
-        out_height = (input_height + 2 * self.pad - self.kernel_height) / self.stride + 1
-        out_width = (input_width + 2 * self.pad - self.kernel_width) / self.stride + 1
-        # get the im2col_data
-        col = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
-        out = self._weights * col + self._bias
-        out = out.reshape(self.kernel_num, out_height, out_width, input_dim)
-        out = out.transpose(3, 0, 1, 2)
-        # cache the col
-        self.col = col
-        self.x_shape = X.shape
-        return out
+        return super(Convolution, self).forward(X, y)
 
 
-
-    def backward(self, Y):
+    def backward(self, y, X):
         """
-        do the backward job, it compute two things.
-        1\ gradient with respect to x
-        2\ gradient with respect to weight and bias
-        need the col to im trick
+        call the base just
         :param Y:
         :return:
         """
-        # with respect to bias
-        self._db = np.sum(Y, axis=(0, 2, 3)).reshape(self.kernel_num, -1)
-        # with respect to w
-        dout = Y.transpose(1, 2, 3, 0).reshape(self.kernel_num, -1)
-        self._dw = dout * self.col.T
-        # with respect to x
-        dx_col = self._weights.T * dout
-        dx = col2im(dx_col, self.x_shape, self.kernel_height, self.kernel_width, self.pad, self.stride)
-        return dx
-
-
-
-
-
-
+        # update the weight and bias here
+        self.db = np.sum(y, axis=(0, 2, 3)).reshape(self.db.shape)
+        # update the weight
+        dout_r = y.transpose(1, 2, 3, 0).reshape(self.kernel_num, -1)
+        col = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
+        self.dw = (dout_r * col.T).reshape(self.dw.shape)
+        # now back to x
+        return super(Convolution, self).backward(y, X)
