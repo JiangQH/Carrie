@@ -1,5 +1,6 @@
 from carrie.layers.baselayer import BaseLayer
 from carrie.math import math
+from carrie.utils.safty_check import check_eq
 class Sigmoid(BaseLayer):
     """
     the Sigmoid function layer
@@ -13,23 +14,32 @@ class Sigmoid(BaseLayer):
     def __init__(self, name):
         super(Sigmoid, self).__init__(name)
 
-    def forward(self, X, y):
+    def forward(self, bottoms):
         """
         compute 1 / (1 + exp(-x))
         :param X: the input tensor
         :return: forward results
         """
-        return  math.sigmoid(X)
+        check_eq(len(bottoms), 1)
+        X = bottoms[0]
+        return math.sigmoid(X)
 
 
-    def backward(self, y, X):
+    def backward(self, tops, propagate_down, bottoms):
         """
-        compute backward which is s(x)(1-s(x)) * Y
-        :param Y: the top tensor, flowed diff
-        :return: backward result
+        :param tops:
+        :param propagate_down:
+        :param bottoms:
+        :return:
         """
-        val = math.sigmoid(X) * (1 - math.sigmoid(X))
-        return y * val
+        check_eq(len(tops), 1)
+        check_eq(len(propagate_down), 1)
+        check_eq(len(bottoms), 1)
+        X = bottoms[0]
+        y = tops[0]
+        if propagate_down[0]:
+            val = math.sigmoid(X) * (1 - math.sigmoid(X))
+            return y * val
 
 
 

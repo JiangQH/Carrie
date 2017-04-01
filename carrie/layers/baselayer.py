@@ -4,23 +4,27 @@ class BaseLayer(object):
         self._name = name
 
 
-    def forward(self, X, y):
+    def forward(self, bottoms):
         """
-        :param X: forward step, input. which is a tensor [n, c, w, h]
+        :param bottoms: bottoms, which is a list of tensors of [n, c, h, w]
         :return: the forward results
         """
         pass
 
-    def backward(self, y, X):
+    def backward(self, tops, propagate_down, bottoms):
         """
-        :param Y: backward step, output. which is a tensor [n, c, w, h]
-        :return: back_diff
+        backward pass
+        :param tops: list of top tensors
+        :param propagate_down: will we propagate down to the bottom_i ?
+        :param bottoms: list of bottom tensors, data, which may be needed when do update to the weights
+        :return:
         """
         pass
 
-    def initJob(self, X):
+    def initJob(self, bottoms):
         """
-        init the weights and bias, call only once
-        :param X:
+        the bottoms data, do some init job here
+        :param bottoms:
         :return:
         """
+        pass

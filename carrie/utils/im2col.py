@@ -70,7 +70,7 @@ def col2im(cols, X_shape, kernel_height, kernel_width, pad, stride):
     """
     [N, C, H, W] = X_shape
     x_padded = np.zeros((N, C, H + 2 * pad, W + 2 * pad), dtype=cols.dtype)
-    ch_index, h_index, w_index = __get_im2col_index(X.shape, kernel_height, kernel_width, pad, stride)
+    ch_index, h_index, w_index = __get_im2col_index(X_shape, kernel_height, kernel_width, pad, stride)
     cols_r = cols.reshape(C * kernel_height * kernel_width, -1).transpose(2, 0, 1)
     np.add.at(x_padded, (slice(None), ch_index, h_index, w_index), cols_r)
 
