@@ -52,6 +52,6 @@ class Convolution(BaseConvolution):
         # update the weight
         dout_r = y.transpose(1, 2, 3, 0).reshape(self.kernel_num, -1)
         col = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
-        self.dw = (dout_r * col.T).reshape(self.dw.shape)
+        self.dw = np.dot(dout_r, col.T).reshape(self.dw.shape)
         # now back to x
-        return super(Convolution, self).backward(tops, propagate_down, bottoms)
+        return super(Convolution, self).backward(tops, propagate_down, [X.shape])

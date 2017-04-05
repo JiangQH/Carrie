@@ -16,5 +16,6 @@ def test_conv():
     bottoms = [data]
     conv.initJob(bottoms)
     y = conv.forward(bottoms)
+    re = conv.backward([y], [True], bottoms)
 
 

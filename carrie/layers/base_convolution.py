@@ -127,7 +127,7 @@ class BaseConvolution(BaseLayer):
             X_shape = bottoms[0]
             # with respect to x
             dout = y.transpose(1, 2, 3, 0).reshape(self.kernel_num, -1)
-            dx_col = self.weights.T * dout
+            dx_col = np.dot(self.weights.T, dout)
             dx = col2im(dx_col, X_shape, self.kernel_height, self.kernel_width, self.pad, self.stride)
             return dx
 
