@@ -61,7 +61,7 @@ class BaseConvolution(BaseLayer):
         self._input_channel = input_channel
 
         # the init job for weight and bias
-        self.weights = np.random.randn((self.kernel_num, input_channel * self.kernel_height * self.kernel_width))
+        self.weights = np.random.randn(self.kernel_num, input_channel * self.kernel_height * self.kernel_width)
         self.bias = np.ones((self.kernel_num, 1)) * self.b_val
         self.dw = np.zeros_like(self.weights, dtype=np.float32)
         self.db = np.zeros_like(self.bias, dtype=np.float32)
@@ -102,7 +102,7 @@ class BaseConvolution(BaseLayer):
         out_width = (input_width + 2 * self.pad - self.kernel_width) / self.stride + 1
         # get the im2col_data
         col = im2col(X, self.kernel_height, self.kernel_width, self.pad, self.stride)
-        out = self.weights * col + self.bias
+        out = np.dot(self.weights, col) + self.bias
         out = out.reshape(self.kernel_num, out_height, out_width, input_dim)
         out = out.transpose(3, 0, 1, 2)
         return out
