@@ -19,23 +19,18 @@ def __get_im2col_index(x_shape, kernel_height, kernel_width, pad, stride):
     out_width = (W + 2 * pad - kernel_width) / stride + 1
 
     # note we should return the index of after padded , so remember it
-    # the w_index
-    w_kernel = np.arange(kernel_width)
-    adder_w = stride * np.arange(out_width).reshape(-1, 1)
-    w_index = w_kernel + adder_w
-    w_index = np.tile(w_index.reshape(-1, 1), out_height).reshape(-1, 1)
+    w_kernel = np.repeat(np.arange(kernel_height), kernel_width)
+    w_kernel = np.tile(w_kernel, C)
+    adder_w = stride * np.repeat(np.arange(out_height), out_width)
+    w_index = w_kernel.reshape(-1, 1) + adder_w.reshape(1, -1)
 
-    # the h_index
-    h_kernel = np.arange(kernel_height)
-    h_kernel = np.repeat(h_kernel, out_width)
-    adder_h = stride * np.arange(out_height).reshape(-1, 1)
-    h_index = h_kernel + adder_h
-    h_index = h_index.reshape(-1, 1)
+    h_kernel = np.tile(np.arange(kernel_width), kernel_height * C)
+    adder_h = stride * np.tile(np.arange(out_width), out_height)
+    h_index = h_kernel.reshape(-1, 1) + adder_h.reshape(1, -1)
 
-    # the channel_index
     k = np.repeat(np.arange(C), kernel_height * kernel_width).reshape(-1, 1)
 
-    return (k.astype(int), h_index.astype(int), w_index.astype(int))
+    return (k.astype(int), w_index.astype(int), h_index.astype(int))
 
 
 
@@ -71,7 +66,7 @@ def col2im(cols, X_shape, kernel_height, kernel_width, pad, stride):
     [N, C, H, W] = X_shape
     x_padded = np.zeros((N, C, H + 2 * pad, W + 2 * pad), dtype=cols.dtype)
     ch_index, h_index, w_index = __get_im2col_index(X_shape, kernel_height, kernel_width, pad, stride)
-    cols_r = cols.reshape(C * kernel_height * kernel_width, -1).transpose(2, 0, 1)
+    cols_r = cols.reshape(C * kernel_height * kernel_width, -1, N).transpose(2, 0, 1)
     np.add.at(x_padded, (slice(None), ch_index, h_index, w_index), cols_r)
 
     return x_padded if pad == 0 else x_padded[:, :, pad:-pad, pad:-pad]
