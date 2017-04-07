@@ -34,7 +34,7 @@ def __get_im2col_index(x_shape, kernel_height, kernel_width, pad, stride):
 
 
 
-def im2col(X, kernel_height, kernel_width, pad, stride):
+def im2col(X, kernel_height, kernel_width, pad, stride, pad_val=0):
     """
     do the im2col job, get the val which we want to output
     :param X:
@@ -44,7 +44,7 @@ def im2col(X, kernel_height, kernel_width, pad, stride):
     :param stride:
     :return:
     """
-    x_padded = np.pad(X, ((0, 0), (0, 0), (pad, pad), (pad, pad)), 'constant')
+    x_padded = np.pad(X, ((pad_val, pad_val), (pad_val, pad_val), (pad, pad), (pad, pad)), 'constant')
     ch_index, h_index, w_index = __get_im2col_index(X.shape, kernel_height, kernel_width, pad, stride)
 
     c = X.shape[1]
