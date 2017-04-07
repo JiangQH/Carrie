@@ -70,7 +70,7 @@ class BaseConvolution(BaseLayer):
             ns = self.kernel_num * input_channel * self.kernel_height * self.kernel_width
             self.weights *= np.sqrt(2.0 / ns)
         else:
-            print 'init convolution layer weights with std'.format(self.w_std)
+            print 'init convolution layer weights with std {}'.format(self.w_std)
             self.weights *= self.w_std
         self.has_init = True
 
