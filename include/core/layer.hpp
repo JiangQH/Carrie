@@ -9,22 +9,24 @@
 #include "atom.hpp"
 #include "common.hpp"
 namespace carrie {
+
+template <typename T>
 class Layer {
 
 public:
-	virtual void forward(const std::vector<std::vector<Atom>>& bottoms, std::vector<std::vector<Atom>>& tops) = 0;
-	
-	virtual void load_layer(const std::string& param) = 0;
+	explicit Layer(const std::string& param);
+	virtual ~Layer(){}
 
+	virtual void forward(const std::vector<Atom<T>*>& bottoms, std::vector<Atom<T>*>& tops) = 0;
+	virtual void backward(const std::vector<Atom<T>*>& top,
+		const std::vector<bool>& propagate_down, const std::vector<Atom<T>*>& bottom);
+	virtual void load_layer(const std::string& param)=0;
 	virtual void layer_type() const;
-
-	void add_count() {++need_count_;}
-	void sub_count() {--need_count_;}
-	bool is_clear() { return !need_count_;}
+	
+	
 
 private:
 	LayerType type_;
-	int need_count_; // count how many layer's input need this layer, since we only need the output
 
 };// end of class
 } // end of namespace

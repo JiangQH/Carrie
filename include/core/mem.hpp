@@ -30,3 +30,25 @@ private:
 };
 }// end of namespace
 #endif
+
+
+void remove_space(char* str) {
+	if (str == NULL) {
+		return;
+	}
+	int real = 0;
+	int walker = 0;
+	while (str[walker] != '/0') {
+		if (walker == real && str[walker] != ' ') {
+			++walker;
+			++real;
+		}
+		else if (str[walker] == ' ') {
+			++walker;
+		}
+		else {
+			str[real++] = str[walker++];
+		}
+	}
+	str[real] = '/0';
+}
